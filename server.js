@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var passport = require('passport');
 var dogController = require('./controllers/dog');
 var userController = require('./controllers/user');
+var loginController = require('./controllers/login');
 var authController = require('./controllers/auth');
 
 // Connect to the beerlocker MongoDB
@@ -24,13 +25,13 @@ app.use(passport.initialize());
 // Create our Express router
 var router = express.Router();
 
-// Create endpoint handlers for /beers
+// Create endpoint handlers for /dogs
 router.route('/dogs')
   .post(authController.isAuthenticated, dogController.postDogs)
   .get(authController.isAuthenticated, dogController.getDogs);
 
-// Create endpoint handlers for /beers/:beer_id
-router.route('/beers/:beer_id')
+// Create endpoint handlers for /dogs/:dog_id
+router.route('/dogs/:dog_id')
   .get(authController.isAuthenticated, dogController.getDog)
   .put(authController.isAuthenticated, dogController.putDog)
   .delete(authController.isAuthenticated, dogController.deleteDog);
@@ -39,6 +40,10 @@ router.route('/beers/:beer_id')
 router.route('/users')
   .post(userController.postUsers)
   .get(authController.isAuthenticated, userController.getUsers);
+
+router.route('/login')
+  .post(authController.isAuthenticated, loginController.postLogin);
+  // .post(loginController.postLogin);
 
 // Register all our routes with /api
 app.use('/api', router);

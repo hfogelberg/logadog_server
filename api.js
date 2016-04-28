@@ -120,10 +120,10 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
-	apiRouter.route('/dogs/:user_id')
+	apiRouter.route('/dogs')
 		.get(function(req, res){
-			console.log('Get my dogs called');
-			models.Dogs.find({}, function(err, result){
+			console.log('Get my dogs called ' + req.body);
+			models.Dogs.find({user_id: req.body.user_id}, function(err, result){
         if(err){
           res.send(JSON.stringify({err: err}));
 				} else {
@@ -135,7 +135,10 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 			console.log('Post dog', req.body);
 			var dog = new models.Dogs({
 				name: req.body.name,
-				breed: req.body.breed
+				breed: req.body.breed,
+        user_id: req.body.user_id,
+        created_date: Date.now(),
+        changed_date: Date.now()
 			});
 
 		dog.save(function(err, result){

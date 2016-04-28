@@ -8,7 +8,10 @@ module.exports = function(mongoose, bcrypt) {
 
   var Dog = new mongoose.Schema({
     name: String,
-    breed: String
+    breed: String,
+    user_id: String,
+    created_date: Date,
+    changed_date: Date
   });
 
   UserSchema.pre('save', function(next) {

@@ -4,6 +4,30 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 	  res.json({ message: 'The API is alive!' });
 	});
 
+  // Sign up and create user
+  apiRouter.route('/users')
+    .post(function(req, res){
+      console.log('Post user');
+      var user = new models.Users({
+      	name: req.body.name,
+      	username: req.body.username,
+      	email: req.body.email,
+      	password: req.body.password
+      });
+
+      user.save(function(err, result){
+      	if(err){
+          if(err.code == 11000) {
+            return res.json({success: false, message: 'A user with that user name already exists'});
+          } else {
+      		  res.send(JSON.stringify({err: err}));
+          }
+      	} else {
+      		res.json({message: result});
+      	}
+      });
+    });
+
   apiRouter.route('/authenticate')
     .post(function(req, res) {
       models.Users.findOne({
@@ -39,6 +63,8 @@ module.exports = function(apiRouter, models, jwt, supersecret){
               res.json({
                 success: true,
                 message: 'Token created',
+                username: user.username,
+                user_id: user._id,
                 token: token
               });
             }
@@ -82,30 +108,6 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 	  res.json({ message: 'Token is valid' });
 	});
 
-  // Create user
-  apiRouter.route('/users')
-    .post(function(req, res){
-      console.log('Post user');
-      var user = new models.Users({
-      	name: req.body.name,
-      	username: req.body.username,
-      	email: req.body.email,
-      	password: req.body.password
-      });
-
-      user.save(function(err, result){
-      	if(err){
-          if(err.code == 11000) {
-            return res.json({success: false, message: 'A user with that user name already exists'});
-          } else {
-      		  res.send(JSON.stringify({err: err}));
-          }
-      	} else {
-      		res.json({message: result});
-      	}
-      });
-    });
-
   // Handle user
   apiRouter.route('/users/:user_id')
     .get(function( req, res) {
@@ -118,7 +120,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
-	apiRouter.route('/my_dogs')
+	apiRouter.route('/dogs/:user_id')
 		.get(function(req, res){
 			console.log('Get my dogs called');
 			models.Dogs.find({}, function(err, result){

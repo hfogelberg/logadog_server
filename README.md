@@ -1,6 +1,20 @@
 #Log A Dog
 Server backend for the Logadog iOS app written in Node JS.
 
-API calls authenticated by Passport.
+## Publicly available API
+###Check that the API is alive
+/api
 
-Example call: http -a username:password -f POST http://localhost:3000/api/dogs name='Rover'
+###Sign up and create user
+POST /api/users/:name/:email/:username/:password
+
+###Log in and create token
+POST /api/authenticate/:username/:password
+
+##API routes that require a token
+
+###Show user
+
+###Change user
+
+###

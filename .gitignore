@@ -1,4 +1,5 @@
 # ignore packages installed by npm
 node_modules
+npm-debug.log
 *~
 .DS_Store

@@ -1,15 +1,28 @@
 {
   "name": "logadog_server",
   "version": "0.1.0",
-  "author": "henrik.fogelberg@gmail.com",
-  "repository": "https://github.com/hfogelberg/logadog_server",
+  "description": "Server backend for the Logadog iOS app written in Node JS.",
   "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hfogelberg/logadog_server.git"
+  },
+  "keywords": [],
+  "author": "henrik.fogelberg@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hfogelberg/logadog_server/issues"
+  },
+  "homepage": "https://github.com/hfogelberg/logadog_server#readme",
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.15.0",
     "express": "^4.13.4",
-    "mongoose": "^4.4.12",
-    "passport": "^0.3.2",
-    "passport-http": "^0.3.0"
+    "jsonwebtoken": "^5.7.0",
+    "mongoose": "^4.4.13",
+    "morgan": "^1.7.0"
   }
 }

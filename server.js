@@ -1,52 +1,35 @@
-// Load required packages
-var express = require('express');
-var mongoose = require('mongoose');
-var bodyParser = require('body-parser');
-var passport = require('passport');
-var dogController = require('./controllers/dog');
-var userController = require('./controllers/user');
-var loginController = require('./controllers/login');
-var authController = require('./controllers/auth');
+var express = require('express'),
+    app = express(),
+    apiRouter = express.Router(),
+    bodyParser = require('body-parser'),
+    logger = require('morgan'),
+    mongoose = require('mongoose'),
+    bcrypt = require('bcrypt-nodejs'),
+    jwt = require('jsonwebtoken'),
+    supersecret = 'mysupersecret',
+    database = require('./config/database'),
+    port = process.env.PORT || 3000;
 
-// Connect to the beerlocker MongoDB
-mongoose.connect('mongodb://localhost:27017/logadog');
+// Basic app config
+app.set('port', port);
+app.use(logger('dev'));
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 
-// Create our Express application
-var app = express();
+// Handle CORS requests
+app.use(function(req, res, next) {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
+	next();
+});
 
-// Use the body-parser package in our application
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+// Hook up to the Db
+mongoose.connect(database.url);
+var models = require('./config/models')(mongoose, bcrypt);
 
-// Use the passport package in our application
-app.use(passport.initialize());
+require('./api')(apiRouter, models, jwt, supersecret);
+app.use('/api', apiRouter);
 
-// Create our Express router
-var router = express.Router();
-
-// Create endpoint handlers for /dogs
-router.route('/dogs')
-  .post(authController.isAuthenticated, dogController.postDogs)
-  .get(authController.isAuthenticated, dogController.getDogs);
-
-// Create endpoint handlers for /dogs/:dog_id
-router.route('/dogs/:dog_id')
-  .get(authController.isAuthenticated, dogController.getDog)
-  .put(authController.isAuthenticated, dogController.putDog)
-  .delete(authController.isAuthenticated, dogController.deleteDog);
-
-// Create endpoint handlers for /users
-router.route('/users')
-  .post(userController.postUsers)
-  .get(authController.isAuthenticated, userController.getUsers);
-
-router.route('/login')
-  .post(authController.isAuthenticated, loginController.postLogin);
-  // .post(loginController.postLogin);
-
-// Register all our routes with /api
-app.use('/api', router);
-
-// Start the server
-app.listen(3000);
+app.listen(port);
+console.log('Server is running on ' + port);

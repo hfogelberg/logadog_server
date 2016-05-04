@@ -23,7 +23,17 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       		  res.send(JSON.stringify({err: err}));
           }
       	} else {
-      		res.json({message: result});
+          // Create token
+          var token = jwt.sign({
+            name: user.name,
+            username: user.username
+          }, supersecret, {
+            expiresInMinutes: 1440 // expires in 24 hours
+          });
+
+					console.log('User created. Token is: ' + token);
+
+      		res.json({success: true, message: 'User created', user_id: result._id, token: token});
       	}
       });
     });
@@ -37,6 +47,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
           throw err;
         } else {
           if (!user) {
+						console.log('Authentication. No user');
             res.json ({
               success: false,
               message: 'Authentication failed. User not found.'
@@ -47,18 +58,28 @@ module.exports = function(apiRouter, models, jwt, supersecret){
             // Check if password matches
             var validPassword = user.comparePassword(req.body.password);
             if (!validPassword) {
+							console.log('Authentication. Wrong password');
               res.json({
                 success: false,
                 message: 'Authentication failed. Wrong password.'
               });
             } else {
               // Everything OK. Create token
+
+							console.log("%%%%%% Sign in OK. Returning token %%%%%");
+
               var token = jwt.sign({
                 name: user.name,
                 username: user.username
               }, supersecret, {
                 expiresInMinutes: 1440 // expires in 24 hours
               });
+
+							console.log('');
+							console.log(token);
+							console.log('');
+							console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
+
 
               res.json({
                 success: true,
@@ -75,14 +96,17 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 
   // middleware
 	apiRouter.use(function(req, res, next) {
-	  console.log('API middleware called ' + req.body);
-
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    var token = req.body.token || req.query.token || req.headers['token'];
     if (token) {
+			console.log("###########################");
+      console.log("We have a token: " + token);
+			console.log("supersecret: " + supersecret);
+				console.log("###########################");
       jwt.verify(token, supersecret, function(err, decoded) {
         // Token error
         if (err) {
           console.log('Token error');
+					console.log(err);
           return res.status(403).send({
             success: false,
             message: 'Failed to authenticate token'
@@ -95,6 +119,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     }  else {
       // No token sent
+      console.log("No token");
       return res.status(403).send({
         success: false,
         message: 'No token provided.'
@@ -120,17 +145,21 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
-	apiRouter.route('/dogs')
+	apiRouter.route('/dogs/:user_id')
 		.get(function(req, res){
-			console.log('Get my dogs called ' + req.body);
-			models.Dogs.find({user_id: req.body.user_id}, function(err, result){
+			// var user_id = req.params.user_id.toString();
+			console.log('Get my dogs called. User Id: ' + req.params.user_id);
+			models.Dogs.find({user_id: req.params.user_id}, function(err, result){
+				console.log('Dogs found: ' + result.length);
         if(err){
-          res.send(JSON.stringify({err: err}));
+          res.send(JSON.stringify({success: false, message: 'Error fetching dogs', err: err}));
 				} else {
-					res.json(result);
+					console.log(result);
+					res.json({success: true, message: 'OK', dogs: result});
 				}
 			});
-		})
+		}) // End GET dogs/:user_id
+
 		.post(function(req, res){
 			console.log('Post dog', req.body);
 			var dog = new models.Dogs({
@@ -141,12 +170,12 @@ module.exports = function(apiRouter, models, jwt, supersecret){
         changed_date: Date.now()
 			});
 
-		dog.save(function(err, result){
-			if(err){
-				res.send(JSON.stringify({err: err}));
-			} else {
-				res.json({message: result});
-			}
-		});
-	});
+			dog.save(function(err, result){
+				if(err){
+					res.send(JSON.stringify({success: false, message: 'Error saving new dog', err: err}));
+				} else {
+					res.json({success: true, message: 'OK', dog: result});
+				}
+			});
+		});		// End POST dogs/:user_id
 };

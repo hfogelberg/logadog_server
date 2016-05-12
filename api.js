@@ -98,6 +98,28 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
+		// test that token is provided
+		apiRouter.get('/checktoken', function(req, res) {
+			console.log('checktoken');
+
+			var token = req.body.token || req.query.token || req.headers['token'];
+			console.log('Token: ' + token);
+			console.log("#############################");
+			if (token) {
+				jwt.verify(token, supersecret, function(err, decoded) {
+					// Token error
+					if (err) {
+						console.log('Token error');
+						console.log(err);
+						res.send(JSON.stringify({success: false, message: 'Invalid token', response_data: {}}));
+					} else {
+						console.log('Token is valid');
+						res.send(JSON.stringify({success: true, message: 'Token is valid', response_data: {}}));
+					}
+				});
+			}
+		});
+
   // middleware
 	apiRouter.use(function(req, res, next) {
     var token = req.body.token || req.query.token || req.headers['token'];
@@ -109,7 +131,8 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 					console.log(err);
           return res.status(403).send({
             success: false,
-            message: 'Failed to authenticate token'
+            message: 'Failed to authenticate token',
+						response_data: {}
           });
         } else {
           console.log('Token is valid');
@@ -122,15 +145,10 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       console.log("No token");
       return res.status(403).send({
         success: false,
-        message: 'No token provided.'
+        message: 'No token provided.',
+				response_data: {}
       });
     }
-	});
-
-  // test that token is provided
-	apiRouter.get('/checktoken', function(req, res) {
-    console.log('Shoud give No token error');
-	  res.json({ message: 'Token is valid' });
 	});
 
   // Handle user

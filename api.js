@@ -1,13 +1,76 @@
 module.exports = function(apiRouter, models, jwt, supersecret){
+	var statusCodes = require('./statusCodes');
+
   // test route to make sure everything is working
 	apiRouter.get('/', function(req, res) {
 	  res.json({ message: 'The API is alive!' });
 	});
 
+	apiRouter.route('/authenticate')
+		.get(function(req, res) {
+
+			console.log('*****************************');
+			console.log('Query String');
+			console.log(req.query);
+			console.log('*****************************');
+			var username =  req.query.username;
+			var password = req.query.password;
+
+      console.log('Username: ' + username + ' password: ' + password);
+			console.log('*******************************');
+			models.Users.findOne({
+				username: username
+			}).select('_id name username email password').exec(function(err, user) {
+				if(err) {
+					res.json({status: err.code});
+					throw err;
+				} else {
+					if (!user) {
+						console.log('Authentication. No user');
+						res.json ({retCode: statusCodes.STATUS_USER_NOT_FOUND});
+					} else if (user) {
+						// Check if password matches
+						var validPassword = user.comparePassword(password);
+						if (!validPassword) {
+							console.log('Authentication. Wrong password');
+							res.json({status: statusCodes.STATUS_PASSWORD_WRONG});
+						} else {
+							// Everything OK. Create token
+							var token = jwt.sign({
+								name: user.name,
+								username: user.username
+							}, supersecret, {
+								expiresIn: 1440 // expires in 24 hours
+							});
+
+							var user = {
+								username: user.username,
+								user_id: user._id,
+								token: token
+							}
+
+							console.log(user);
+							res.json({status: statusCodes.STATUS_OK, user: user});
+						}
+					}
+				}
+			});
+		});
+
   // Sign up and create user
   apiRouter.route('/users')
     .post(function(req, res){
-      console.log('Post user');
+      // console.log('Post user');
+			// console.log(req.body);
+			// console.log('***********************');
+			// console.log('Username: ' + req.body.username);
+
+			console.log(req.body);
+			// console.log('##################################');
+			// parsedBody = JSON.parse(req.body);
+			// console.log(parsedBody);
+			// console.log('************************************');
+
       var user = new models.Users({
       	name: req.body.name,
       	username: req.body.username,
@@ -16,12 +79,10 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
 
       user.save(function(err, result){
+				var ret = statusCodes.RET_OK;
+
       	if(err){
-          if(err.code == 11000) {
-            return res.json({success: false, message: 'A user with that user name already exists'});
-          } else {
-      		  res.send(JSON.stringify({err: err}));
-          }
+        	return res.json({status: err.code});
       	} else {
           // Create token
           var token = jwt.sign({
@@ -32,69 +93,10 @@ module.exports = function(apiRouter, models, jwt, supersecret){
           });
 
 					console.log('User created. Token is: ' + token);
+					console.log('User id: ' + result._id);
 
-					var response_data = {
-						user_id: result.user_id,
-						token: result.token
-					}
-
-      		res.json({success: true, message: 'User created', response_data: response_data});
+      		res.json({status: statusCodes.	STATUS_OK, userId: result._id, token: token});
       	}
-      });
-    });
-
-  apiRouter.route('/authenticate')
-    .post(function(req, res) {
-			console.log("Authenticate");
-
-			console.log("Username: " + req.body.username);
-			console.log("Password: " + req.body.password);
-      models.Users.findOne({
-        username: req.body.username
-      }).select('_id name username email password').exec(function(err, user) {
-        if(err) {
-          throw err;
-        } else {
-          if (!user) {
-						console.log('Authentication. No user');
-            res.json ({
-              success: false,
-              message: 'Authentication failed. User not found.'
-            });
-          } else if (user) {
-            console.log(user);
-
-            // Check if password matches
-            var validPassword = user.comparePassword(req.body.password);
-            if (!validPassword) {
-							console.log('Authentication. Wrong password');
-              res.json({
-                success: false,
-                message: 'Authentication failed. Wrong password.'
-              });
-            } else {
-              // Everything OK. Create token
-              var token = jwt.sign({
-                name: user.name,
-                username: user.username
-              }, supersecret, {
-                expiresIn: 1440 // expires in 24 hours
-              });
-
-							var response_data = {
-								username: user.username,
-								user_id: user._id,
-								token: token
-							}
-
-              res.json({
-                success: true,
-                message: 'Token created',
-                response_data: response_data
-              });
-            }
-          }
-        }
       });
     });
 
@@ -111,10 +113,10 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 					if (err) {
 						console.log('Token error');
 						console.log(err);
-						res.send(JSON.stringify({success: false, message: 'Invalid token', response_data: {}}));
+						res.send(JSON.stringify({status: statusCodes.STATUS_TOKEN_INVALID}));
 					} else {
 						console.log('Token is valid');
-						res.send(JSON.stringify({success: true, message: 'Token is valid', response_data: {}}));
+						res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
 					}
 				});
 			}
@@ -129,11 +131,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
         if (err) {
           console.log('Token error');
 					console.log(err);
-          return res.status(403).send({
-            success: false,
-            message: 'Failed to authenticate token',
-						response_data: {}
-          });
+					res.send(JSON.stringify({status: statusCodes.STATUS_TOKEN_AUTHENTICATION_FAILED}));
         } else {
           console.log('Token is valid');
           req.decoded = decoded;
@@ -143,13 +141,14 @@ module.exports = function(apiRouter, models, jwt, supersecret){
     }  else {
       // No token sent
       console.log("No token");
-      return res.status(403).send({
-        success: false,
-        message: 'No token provided.',
-				response_data: {}
-      });
+			res.send(JSON.stringify({status: statusCodes.STATUS_NO_TOKEN}));
     }
 	});
+
+	// *************************************************************************
+	// NOTE: All functions below require a valid token
+	// 			 The order in the file is important
+	// *************************************************************************
 
   // Handle user
   apiRouter.route('/users/:user_id')
@@ -163,37 +162,37 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
-	apiRouter.route('/dogs/:user_id')
+
+	apiRouter.route('/dogs')
+		.post(function(req, res){
+			console.log('Post dog', req.body);
+			var dog = new models.Dogs({
+				name: req.body.name,
+				breed: req.body.breed,
+				user_id: req.body.user_id,
+				created_date: Date.now(),
+				changed_date: Date.now()
+			});
+
+			dog.save(function(err, result){
+				if(err){
+					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR}));
+				} else {
+					res.json({status: statusCodes.STATUS_OK, dogs: result});
+				}
+			});
+		})
 		.get(function(req, res){
 			// var user_id = req.params.user_id.toString();
 			console.log('Get my dogs called. User Id: ' + req.params.user_id);
 			models.Dogs.find({user_id: req.params.user_id}, function(err, result){
 				console.log('Dogs found: ' + result.length);
         if(err){
-          res.send(JSON.stringify({success: false, message: 'Error fetching dogs', err: err}));
+          res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR}));
 				} else {
 					console.log(result);
-					res.json({success: true, message: 'OK', response_data: result});
+					res.json({status: statusCodes.STATUS_OK, dogs: result});
 				}
 			});
-		}) // End GET dogs/:user_id
-
-		.post(function(req, res){
-			console.log('Post dog', req.body);
-			var dog = new models.Dogs({
-				name: req.body.name,
-				breed: req.body.breed,
-        user_id: req.body.user_id,
-        created_date: Date.now(),
-        changed_date: Date.now()
-			});
-
-			dog.save(function(err, result){
-				if(err){
-					res.send(JSON.stringify({success: false, message: 'Error saving new dog', err: err}));
-				} else {
-					res.json({success: true, message: 'OK', response_data: result});
-				}
-			});
-		});		// End POST dogs/:user_id
+		}); // End GET dogs/:user_id
 };

@@ -162,6 +162,39 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
+	apiRouter.route('/description')
+		.post(function(req, res) {
+			console.log(req.body.dogId);
+			models.Dogs.findOne({_id: req.body.id}, function(err, dog) {
+				console.log(dog);
+				if (err) {
+					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+				} else {
+					var appearance = {
+						color: req.body.color,
+						color: req.body.color,
+						heightInCm: req.body.heightInCm,
+						weightInKg: req.body.weightInKg,
+						comment: req.body.comment
+					};
+
+					console.log('***************************************');
+					console.log(appearance);
+					console.log('***************************************');
+
+					dog.appearance.push(appearance);
+					dog.save(function (err) {
+						if (err) {
+							console.log(err);
+							res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+						} else {
+							res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
+						}
+					});
+				}
+			})
+
+		});
 
 	apiRouter.route('/dogs')
 		.post(function(req, res){
@@ -176,7 +209,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 
 			dog.save(function(err, result){
 				if(err){
-					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR}));
+					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}));
 				} else {
 					res.json({status: statusCodes.STATUS_OK, dogs: result});
 				}

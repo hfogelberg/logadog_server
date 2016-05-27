@@ -165,25 +165,20 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 	apiRouter.route('/description')
 		.post(function(req, res) {
 			console.log(req.body.dogId);
-			models.Dogs.findOne({_id: req.body.id}, function(err, dog) {
+			models.Dogs.findOne({_id: req.body.dogId}, function(err, dog) {
 				console.log(dog);
 				if (err) {
 					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 				} else {
-					var appearance = {
-						color: req.body.color,
-						color: req.body.color,
-						heightInCm: req.body.heightInCm,
-						weightInKg: req.body.weightInKg,
-						comment: req.body.comment
-					};
 
-					console.log('***************************************');
-					console.log(appearance);
-					console.log('***************************************');
+					dog.color =req.body.color,
+					dog.color =req.body.color,
+					dog.heightInCm = req.body.heightInCm,
+					dog.weightInKg = req.body.weightInKg,
+					dog.comment = req.body.comment
 
-					dog.appearance.push(appearance);
 					dog.save(function (err) {
+						console.log('After Save');
 						if (err) {
 							console.log(err);
 							res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))

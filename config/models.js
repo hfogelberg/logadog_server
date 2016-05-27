@@ -1,23 +1,20 @@
 module.exports = function(mongoose, bcrypt) {
-  var AppearanceSchema = new mongoose.Schema({
-      color: String,
-      color: String,
-      heightInCm: String,
-      weightInKg: String
-    });
-
   var UserSchema = new mongoose.Schema({
     name: String,
     email: {type: String, required:  true, index: {unique: true}},
     username: {type: String, required:  true, index: {unique: true}},
-    password: {type: String, required: true, select: false},
-    appearance: AppearanceSchema
+    password: {type: String, required: true, select: false}
   });
 
   var Dog = new mongoose.Schema({
     name: String,
     breed: String,
     user_id: String,
+    color: String,
+    color: String,
+    heightInCm: String,
+    weightInKg: String,
+    comment: String,
     created_date: Date,
     changed_date: Date
   });

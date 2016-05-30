@@ -6,15 +6,27 @@ module.exports = function(mongoose, bcrypt) {
     password: {type: String, required: true, select: false}
   });
 
+  var IdSchema = new mongoose.Schema({
+    passport: String,
+    chip: String,
+    earmark: String,
+    marks: String,
+    comment: String,
+    created_date: String,
+    changed_date: String
+  })
+
   var Dog = new mongoose.Schema({
     name: String,
     breed: String,
+    dogComment: String,
     gender: String,
-    user_id: String,
     color: String,
     heightInCm: String,
     weightInKg: String,
-    comment: String,
+    appearanceComment: String,
+    identity: IdSchema,
+    user_id: String,
     created_date: Date,
     changed_date: Date
   });

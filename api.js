@@ -172,10 +172,47 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
+	apiRouter.route('/identity')
+		.post(function(req, res) {
+			console.log('Post identity', req.body);
+			models.Dogs.findOne({_id: req.body.dogid}, function(err, dog) {
+				console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
+				console.log('DOG FOUND');
+				console.log(dog);
+				console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
+				console.log('');
+
+				if (err) {
+					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+				} else {
+					var id = {
+						passport: req.body.passport,
+						chip: req.body.chip,
+						earmark: req.body.earmark,
+						comment: req.body.comment,
+						created_date: Date.now(),
+						changed_date: Date.now
+					}
+
+					dog.identity = id;
+
+					dog.save(function (err) {
+						console.log('After Save');
+						if (err) {
+							console.log(err);
+							res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+						} else {
+							res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
+						}
+					});
+				}
+			});
+		});
+
 	apiRouter.route('/appearance')
 		.get(function(req, res) {
 				var dogId = req.query.dogid;
-				models.Dogs.findOne({_id: dogId}, 'color heightInCm weightInKg comment',function(err, dog) {
+				models.Dogs.findOne({_id: dogId}, 'color heightInCm weightInKg appearanceComment',function(err, dog) {
 					if (err) {
 						res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 					} else {
@@ -195,7 +232,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 					dog.color =req.body.color,
 					dog.heightInCm = req.body.heightInCm,
 					dog.weightInKg = req.body.weightInKg,
-					dog.comment = req.body.comment,
+					dog.appearanceComment = req.body.comment,
 					dog.changed_date = Date.now()
 
 					dog.save(function (err) {

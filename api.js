@@ -14,10 +14,14 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 			console.log(req.query);
 			console.log('*****************************');
 			var username =  req.query.username;
-			var password = req.query.password;
+			var pwd = req.query.password;
 
-      console.log('Username: ' + username + ' password: ' + password);
+      console.log('Username: ' + username + ' password: ' + pwd);
 			console.log('*******************************');
+			if ((username == "") || (password = "")) {
+					res.jsons({status: statusCodes.STATUS_NO_USERNAME_OR_PASSWORD});
+			}
+
 			models.Users.findOne({
 				username: username
 			}).select('_id name username email password').exec(function(err, user) {
@@ -27,10 +31,11 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 				} else {
 					if (!user) {
 						console.log('Authentication. No user');
-						res.json ({retCode: statusCodes.STATUS_USER_NOT_FOUND});
+						res.json ({status: statusCodes.STATUS_USER_NOT_FOUND});
 					} else if (user) {
 						// Check if password matches
-						var validPassword = user.comparePassword(password);
+						console.log('Found user. Now checkikng password:' + pwd);
+						var validPassword = user.comparePassword(pwd);
 						if (!validPassword) {
 							console.log('Authentication. Wrong password');
 							res.json({status: statusCodes.STATUS_PASSWORD_WRONG});
@@ -113,10 +118,15 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 					if (err) {
 						console.log('Token error');
 						console.log(err);
-						res.send(JSON.stringify({status: statusCodes.STATUS_TOKEN_INVALID}));
+						res.send(JSON.stringify({status: statusCodes.STATUS_TOKEN_AUTHENTICATION_FAILED}));
 					} else {
-						console.log('Token is valid');
-						res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
+						if (token) {
+							console.log('Token is valid');
+							res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
+						} else {
+							console.log('Token is NOT valid');
+							res.send(JSON.stringify({status: statusCodes.STATUS_TOKEN_AUTHENTICATION_FAILED}));
+						}
 					}
 				});
 			}
@@ -162,9 +172,20 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
-	apiRouter.route('/description')
-		.post(function(req, res) {
-			console.log(req.body.dogId);
+	apiRouter.route('/appearance')
+		.get(function(req, res) {
+				var dogId = req.query.dogid;
+				models.Dogs.findOne({_id: dogId}, 'color heightInCm weightInKg comment',function(err, dog) {
+					if (err) {
+						res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+					} else {
+						res.send(JSON.stringify({status: statusCodes.STATUS_OK, dog: dog}))
+					}
+				});
+		})
+
+		.post(function( req, res) {
+			console.log('Post description', req.body);
 			models.Dogs.findOne({_id: req.body.dogId}, function(err, dog) {
 				console.log(dog);
 				if (err) {
@@ -172,10 +193,10 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 				} else {
 
 					dog.color =req.body.color,
-					dog.color =req.body.color,
 					dog.heightInCm = req.body.heightInCm,
 					dog.weightInKg = req.body.weightInKg,
-					dog.comment = req.body.comment
+					dog.comment = req.body.comment,
+					dog.changed_date = Date.now()
 
 					dog.save(function (err) {
 						console.log('After Save');
@@ -187,8 +208,32 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 						}
 					});
 				}
-			})
+			});
+		});
 
+	apiRouter.route('/changedog')
+		.post(function(req, res) {
+			console.log('Post Change dog', req.body);
+			models.Dog.findOne({_id: req.body.dogId}, function(err, dog) {
+				console.log(dog);
+				if (err) {
+					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+				} else {
+					dog.name = req.body.name;
+					dog.breed = req.body.breed;
+					dog.changed_date = Date.now();
+
+					dog.save(function (err) {
+						console.log('After Save');
+						if (err) {
+							console.log(err);
+							res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+						} else {
+							res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
+						}
+					});
+				}
+			});
 		});
 
 	apiRouter.route('/dogs')

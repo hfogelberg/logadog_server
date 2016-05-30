@@ -35,10 +35,12 @@ module.exports = function(mongoose, bcrypt) {
 	});
 
 	UserSchema.methods.comparePassword = function(password) {
-    console.log('comparePassword');
+    console.log('Compare Password: ' + password);
 		var user = this;
+    console.log('');
 
-		return bcrypt.compareSync(password, user.password);
+    var compare = bcrypt.compareSync(password, user.password);
+    return compare
 	};
 
   var models = {

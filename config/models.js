@@ -9,8 +9,8 @@ module.exports = function(mongoose, bcrypt) {
   var Dog = new mongoose.Schema({
     name: String,
     breed: String,
+    gender: String,
     user_id: String,
-    color: String,
     color: String,
     heightInCm: String,
     weightInKg: String,

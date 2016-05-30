@@ -185,7 +185,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 		})
 
 		.post(function( req, res) {
-			console.log('Post description', req.body);
+			console.log('Post appearance', req.body);
 			models.Dogs.findOne({_id: req.body.dogId}, function(err, dog) {
 				console.log(dog);
 				if (err) {
@@ -213,14 +213,13 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 
 	apiRouter.route('/changedog')
 		.post(function(req, res) {
-			console.log('Post Change dog', req.body);
-			models.Dog.findOne({_id: req.body.dogId}, function(err, dog) {
-				console.log(dog);
+			models.Dogs.findOne({_id: req.body.dogid}, function(err, dog) {
 				if (err) {
 					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 				} else {
 					dog.name = req.body.name;
 					dog.breed = req.body.breed;
+					dog.gender = req.body.gender;
 					dog.changed_date = Date.now();
 
 					dog.save(function (err) {
@@ -229,6 +228,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 							console.log(err);
 							res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 						} else {
+							console.log('OK changing dog');
 							res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
 						}
 					});
@@ -242,6 +242,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 			var dog = new models.Dogs({
 				name: req.body.name,
 				breed: req.body.breed,
+				gender: req.body.gender,
 				user_id: req.body.user_id,
 				created_date: Date.now(),
 				changed_date: Date.now()

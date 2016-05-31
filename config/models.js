@@ -6,13 +6,20 @@ module.exports = function(mongoose, bcrypt) {
     password: {type: String, required: true, select: false}
   });
 
+  var AppearanceSchema = new mongoose.Schema({
+    color: String,
+    heightInCm: String,
+    weightInKg: String,
+    comment: String,
+    changed_date: String
+  })
+
   var IdSchema = new mongoose.Schema({
     passport: String,
     chip: String,
     earmark: String,
     marks: String,
     comment: String,
-    created_date: String,
     changed_date: String
   })
 
@@ -21,10 +28,7 @@ module.exports = function(mongoose, bcrypt) {
     breed: String,
     dogComment: String,
     gender: String,
-    color: String,
-    heightInCm: String,
-    weightInKg: String,
-    appearanceComment: String,
+    appearance: AppearanceSchema,
     identity: IdSchema,
     user_id: String,
     created_date: Date,

@@ -174,7 +174,6 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 						chip: req.body.chip,
 						earmark: req.body.earmark,
 						comment: req.body.comment,
-						created_date: Date.now(),
 						changed_date: Date.now
 					}
 
@@ -200,7 +199,8 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 					if (err) {
 						res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 					} else {
-						res.send(JSON.stringify({status: statusCodes.STATUS_OK, dog: dog}))
+						console.log("Fetching appearance:", dog.appearance);
+						res.send(JSON.stringify({status: statusCodes.STATUS_OK, appearance: dog.appearance}))
 					}
 				});
 		})
@@ -208,7 +208,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 		.post(function( req, res) {
 			console.log('Post appearance', req.body);
 			models.Dogs.findOne({_id: req.body.dogId}, function(err, dog) {
-				console.log(dog);
+				console.log("Post appearance. Dog found:", dog);
 				if (err) {
 					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 				} else {
@@ -216,8 +216,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 						color: req.body.color,
 						heightInCm: req.body.heightInCm,
 						weightInKg: req.body.weightInKg,
-						appearanceComment: req.body.comment,
-						created_date: Date.now(),
+						comment: req.body.comment,
 						changed_date: Date.now()
 					}
 

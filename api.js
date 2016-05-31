@@ -196,7 +196,7 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 	apiRouter.route('/appearance')
 		.get(function(req, res) {
 				var dogId = req.query.dogid;
-				models.Dogs.findOne({_id: dogId}, 'color heightInCm weightInKg appearanceComment',function(err, dog) {
+				models.Dogs.findOne({_id: dogId}, 'appearance',function(err, dog) {
 					if (err) {
 						res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 					} else {
@@ -212,12 +212,16 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 				if (err) {
 					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 				} else {
+					var appearance = {
+						color: req.body.color,
+						heightInCm: req.body.heightInCm,
+						weightInKg: req.body.weightInKg,
+						appearanceComment: req.body.comment,
+						created_date: Date.now(),
+						changed_date: Date.now()
+					}
 
-					dog.color =req.body.color,
-					dog.heightInCm = req.body.heightInCm,
-					dog.weightInKg = req.body.weightInKg,
-					dog.appearanceComment = req.body.comment,
-					dog.changed_date = Date.now()
+					dog.appearance = appearance;
 
 					dog.save(function (err) {
 						console.log('After Save');

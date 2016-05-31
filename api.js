@@ -8,16 +8,9 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 
 	apiRouter.route('/authenticate')
 		.get(function(req, res) {
-
-			console.log('*****************************');
-			console.log('Query String');
-			console.log(req.query);
-			console.log('*****************************');
 			var username =  req.query.username;
 			var pwd = req.query.password;
 
-      console.log('Username: ' + username + ' password: ' + pwd);
-			console.log('*******************************');
 			if ((username == "") || (password = "")) {
 					res.jsons({status: statusCodes.STATUS_NO_USERNAME_OR_PASSWORD});
 			}
@@ -65,17 +58,6 @@ module.exports = function(apiRouter, models, jwt, supersecret){
   // Sign up and create user
   apiRouter.route('/users')
     .post(function(req, res){
-      // console.log('Post user');
-			// console.log(req.body);
-			// console.log('***********************');
-			// console.log('Username: ' + req.body.username);
-
-			console.log(req.body);
-			// console.log('##################################');
-			// parsedBody = JSON.parse(req.body);
-			// console.log(parsedBody);
-			// console.log('************************************');
-
       var user = new models.Users({
       	name: req.body.name,
       	username: req.body.username,
@@ -107,11 +89,8 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 
 		// test that token is provided
 		apiRouter.get('/checktoken', function(req, res) {
-			console.log('checktoken');
-
 			var token = req.body.token || req.query.token || req.headers['token'];
-			console.log('Token: ' + token);
-			console.log("#############################");
+
 			if (token) {
 				jwt.verify(token, supersecret, function(err, decoded) {
 					// Token error
@@ -173,15 +152,20 @@ module.exports = function(apiRouter, models, jwt, supersecret){
     });
 
 	apiRouter.route('/identity')
+		.get(function(req, res) {
+			var dogid = req.query.dogid;
+			console.log('Get identity', dogid);
+			console.log('');
+			models.Dogs.findOne({_id: dogid}, 'identity',function(err, dog) {
+				if (err) {
+					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+				} else {
+					res.send(JSON.stringify({status: statusCodes.STATUS_OK, identity: dog.identity}))
+				}
+			});
+		})
 		.post(function(req, res) {
-			console.log('Post identity', req.body);
 			models.Dogs.findOne({_id: req.body.dogid}, function(err, dog) {
-				console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
-				console.log('DOG FOUND');
-				console.log(dog);
-				console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
-				console.log('');
-
 				if (err) {
 					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 				} else {

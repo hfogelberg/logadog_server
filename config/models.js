@@ -12,6 +12,17 @@ module.exports = function(mongoose, bcrypt) {
     weightInKg: String,
     comment: String,
     changed_date: String
+  });
+
+  var InsuranceSchema = new mongoose.Schema({
+    company: String,
+    product: String,
+    number: String,
+    lifeAmount: String,
+    vetAmount: String,
+    anualCost: String, 
+    renewalDate: String,
+    changed_date: String
   })
 
   var IdSchema = new mongoose.Schema({

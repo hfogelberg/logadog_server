@@ -151,6 +151,50 @@ module.exports = function(apiRouter, models, jwt, supersecret){
       });
     });
 
+	apiRouter.route('/insurance')
+		.get(function(req, res) {
+			var dogid = req.query.dogid;
+			console.log('Get insurance', dogid);
+			console.log('');
+			models.Dogs.findOne({_id: dogid}, 'insurance',function(err, dog) {
+				if (err) {
+					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+				} else {
+					res.send(JSON.stringify({status: statusCodes.STATUS_OK, insurance: dog.insurance}))
+				}
+			});
+		})
+		.post(function(req, res) {
+			models.Dogs.findOne({_id: req.body.dogid}, function(err, dog) {
+				if (err) {
+					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+				} else {
+					var insurance = {
+						company: req.body.company,
+				    product: req.body.product,
+				    number: req.body.number,
+				    lifeAmount: req.body.lifeAmount,
+				    vetAmount: req.body.vetAmount,
+				    anualCost: req.body.anualCost,
+				    renewalDate: req.bodyrenewalDate.,
+				    changed_date: req.body.changed_date
+					}
+
+					dog.insurance = id;
+
+					dog.save(function (err) {
+						console.log('After Save');
+						if (err) {
+							console.log(err);
+							res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
+						} else {
+							res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
+						}
+					});
+				}
+			});
+		});
+
 	apiRouter.route('/identity')
 		.get(function(req, res) {
 			var dogid = req.query.dogid;

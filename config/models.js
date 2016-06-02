@@ -20,7 +20,8 @@ module.exports = function(mongoose, bcrypt) {
     number: String,
     lifeAmount: String,
     vetAmount: String,
-    anualCost: String, 
+    anualCost: String,
+    comment: String,
     renewalDate: String,
     changed_date: String
   })
@@ -41,9 +42,10 @@ module.exports = function(mongoose, bcrypt) {
     gender: String,
     appearance: AppearanceSchema,
     identity: IdSchema,
+    insurance: InsuranceSchema,
     user_id: String,
-    created_date: Date,
-    changed_date: Date
+    created_date: String,
+    changed_date: String
   });
 
   UserSchema.pre('save', function(next) {

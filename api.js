@@ -160,11 +160,13 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 				if (err) {
 					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 				} else {
+					console.log('Insurance', dog.insurance);
 					res.send(JSON.stringify({status: statusCodes.STATUS_OK, insurance: dog.insurance}))
 				}
 			});
 		})
 		.post(function(req, res) {
+			console.log('Post insurance', req.body);
 			models.Dogs.findOne({_id: req.body.dogid}, function(err, dog) {
 				if (err) {
 					res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
@@ -174,20 +176,22 @@ module.exports = function(apiRouter, models, jwt, supersecret){
 				    product: req.body.product,
 				    number: req.body.number,
 				    lifeAmount: req.body.lifeAmount,
-				    vetAmount: req.body.vetAmount,
+				    lifeAmount: req.body.vetAmount,
 				    anualCost: req.body.anualCost,
-				    renewalDate: req.bodyrenewalDate.,
+						comment: req.body.comment,
+				    renewalDate: req.body.renewalDate,
 				    changed_date: req.body.changed_date
 					}
 
-					dog.insurance = id;
+					dog.insurance = insurance;
 
 					dog.save(function (err) {
-						console.log('After Save');
+						console.log('After Saving insurance');
 						if (err) {
 							console.log(err);
 							res.send(JSON.stringify({status: statusCodes.STATUS_DB_ERROR, message: err}))
 						} else {
+							console.log('OK saving insurance');
 							res.send(JSON.stringify({status: statusCodes.STATUS_OK}));
 						}
 					});
